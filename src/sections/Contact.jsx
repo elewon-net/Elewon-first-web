@@ -5,16 +5,17 @@ import {
   Instagram,
   Globe,
   Send,
-  Sparkles,
+  Loader2,
   CheckCircle2,
   AlertCircle,
-  MessageCircle,
+  Clock,
+  Sparkles,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import SectionHeading from '../components/SectionHeading';
-import { siteConfig, generateWhatsAppContactUrl } from '../config/siteConfig';
+import { siteConfig } from '../config/siteConfig';
+import { sendContactEnquiry } from '../services/emailService';
 import GoldParticleCanvas from '../components/GoldParticleCanvas';
-import MagneticButton from '../components/MagneticButton';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -26,19 +27,23 @@ export default function Contact() {
   });
 
   const [errors, setErrors] = useState({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'success' | 'error'
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Listen to external service selection triggers (e.g. clicking a service card)
   useEffect(() => {
     const handleServiceSelect = (e) => {
       if (e.detail) {
         setFormData((prev) => ({ ...prev, service: e.detail }));
+        if (errors.service) {
+          setErrors((prev) => ({ ...prev, service: '' }));
+        }
       }
     };
 
     window.addEventListener('select-service', handleServiceSelect);
     return () => window.removeEventListener('select-service', handleServiceSelect);
-  }, []);
+  }, [errors.service]);
 
   const validate = () => {
     const newErrors = {};
@@ -75,41 +80,51 @@ export default function Contact() {
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
+    if (status === 'error') {
+      setStatus('idle');
+      setErrorMessage('');
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validate()) {
       return;
     }
 
-    // 1. Generate formatted WhatsApp URL via centralized helper
-    const whatsappUrl = generateWhatsAppContactUrl({
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      phone: formData.phone.trim(),
-      service: formData.service,
-      projectDetails: formData.message.trim(),
-    });
+    setStatus('loading');
+    setErrorMessage('');
 
-    // 2. Open WhatsApp in new tab
-    window.open(whatsappUrl, '_blank');
-
-    // 3. Trigger micro-celebration confetti
     try {
-      confetti({
-        particleCount: 50,
-        spread: 60,
-        origin: { y: 0.8 },
-        colors: ['#F5D77A', '#D4AF37', '#C9A227', '#FFFFFF'],
+      await sendContactEnquiry({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        service: formData.service,
+        message: formData.message,
       });
-    } catch (err) {
-      // ignore
-    }
 
-    // 4. Show success banner
-    setIsSubmitted(true);
+      // Micro-celebration confetti
+      try {
+        confetti({
+          particleCount: 60,
+          spread: 70,
+          origin: { y: 0.75 },
+          colors: ['#F5D77A', '#D4AF37', '#C9A227', '#FFFFFF'],
+        });
+      } catch (err) {
+        // ignore confetti errors
+      }
+
+      setStatus('success');
+    } catch (err) {
+      console.error('Contact submission error:', err);
+      setStatus('error');
+      setErrorMessage(
+        err.message || 'Something went wrong. Please try again.'
+      );
+    }
   };
 
   const handleReset = () => {
@@ -121,7 +136,8 @@ export default function Contact() {
       message: '',
     });
     setErrors({});
-    setIsSubmitted(false);
+    setStatus('idle');
+    setErrorMessage('');
   };
 
   return (
@@ -179,7 +195,7 @@ export default function Contact() {
                 </div>
                 <div className="min-w-0">
                   <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block">
-                    EMAIL INQUIRIES
+                    DIRECT EMAIL
                   </span>
                   <span className="text-sm font-semibold text-white group-hover:text-[#F5D77A] transition-colors truncate block">
                     {siteConfig.email}
@@ -227,10 +243,10 @@ export default function Contact() {
                 </div>
               </a>
 
-              {/* WhatsApp Quick Note */}
+              {/* Direct Response Note */}
               <div className="pt-4 border-t border-neutral-800/80 flex items-center gap-3 text-xs text-neutral-400">
-                <MessageCircle className="w-4 h-4 text-[#25D366] shrink-0" />
-                <span>Instant dispatch to ELEWON WhatsApp concierge.</span>
+                <Clock className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                <span>All project enquiries receive a direct response within 24 hours.</span>
               </div>
             </div>
           </motion.div>
@@ -249,7 +265,7 @@ export default function Contact() {
               <div className="absolute top-0 left-10 right-10 h-[2px] bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-transparent" />
 
               <AnimatePresence mode="wait">
-                {isSubmitted ? (
+                {status === 'success' ? (
                   <motion.div
                     key="success-state"
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -261,27 +277,48 @@ export default function Contact() {
                       <CheckCircle2 className="w-8 h-8" />
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <h4 className="font-display text-2xl font-bold uppercase tracking-wider text-white">
-                        Message Prepared
+                        Enquiry Received
                       </h4>
-                      <p className="text-sm text-neutral-300 font-light max-w-md mx-auto leading-relaxed">
-                        Your message is ready in WhatsApp. Please tap <strong className="text-[#F5D77A]">Send</strong> in WhatsApp to contact ELEWON.
+                      <p className="text-base text-neutral-200 font-medium max-w-md mx-auto leading-relaxed">
+                        Message sent successfully. We'll get back to you soon.
+                      </p>
+                      <p className="text-xs text-neutral-400 font-mono max-w-sm mx-auto">
+                        Your project details have been securely delivered to <span className="text-[#D4AF37]">{siteConfig.email}</span>.
                       </p>
                     </div>
 
                     <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
                       <button
+                        type="button"
                         onClick={handleReset}
                         className="px-6 py-3 rounded-full bg-neutral-900 border border-neutral-700 text-xs font-semibold tracking-wider uppercase text-neutral-300 hover:text-white hover:border-[#D4AF37] transition-all"
                       >
-                        Submit Another Request
+                        Send Another Enquiry
                       </button>
                     </div>
                   </motion.div>
                 ) : (
                   <form key="contact-form" onSubmit={handleSubmit} noValidate className="space-y-6">
                     
+                    {/* Error Banner */}
+                    {status === 'error' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-4 rounded-xl bg-red-950/40 border border-red-500/50 flex items-start gap-3 text-red-200 text-xs"
+                      >
+                        <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-semibold text-red-300">Something went wrong. Please try again.</p>
+                          {errorMessage && errorMessage !== 'Something went wrong. Please try again.' && (
+                            <p className="text-[11px] text-red-400/80 mt-1">{errorMessage}</p>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+
                     {/* Row 1: Name & Email */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       
@@ -293,10 +330,11 @@ export default function Contact() {
                         <input
                           type="text"
                           name="name"
+                          disabled={status === 'loading'}
                           value={formData.name}
                           onChange={handleChange}
                           placeholder="e.g. Alexander Vance"
-                          className={`w-full px-4 py-3.5 rounded-xl bg-neutral-950/80 border text-sm text-white placeholder-neutral-500 focus:outline-none transition-all duration-200 ${
+                          className={`w-full px-4 py-3.5 rounded-xl bg-neutral-950/80 border text-sm text-white placeholder-neutral-500 focus:outline-none transition-all duration-200 disabled:opacity-50 ${
                             errors.name
                               ? 'border-red-500/80 focus:border-red-500'
                               : 'border-neutral-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30'
@@ -304,7 +342,7 @@ export default function Contact() {
                         />
                         {errors.name && (
                           <p className="text-xs text-red-400 flex items-center gap-1.5 pt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                             <span>{errors.name}</span>
                           </p>
                         )}
@@ -318,10 +356,11 @@ export default function Contact() {
                         <input
                           type="email"
                           name="email"
+                          disabled={status === 'loading'}
                           value={formData.email}
                           onChange={handleChange}
                           placeholder="name@company.com"
-                          className={`w-full px-4 py-3.5 rounded-xl bg-neutral-950/80 border text-sm text-white placeholder-neutral-500 focus:outline-none transition-all duration-200 ${
+                          className={`w-full px-4 py-3.5 rounded-xl bg-neutral-950/80 border text-sm text-white placeholder-neutral-500 focus:outline-none transition-all duration-200 disabled:opacity-50 ${
                             errors.email
                               ? 'border-red-500/80 focus:border-red-500'
                               : 'border-neutral-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30'
@@ -329,7 +368,7 @@ export default function Contact() {
                         />
                         {errors.email && (
                           <p className="text-xs text-red-400 flex items-center gap-1.5 pt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                             <span>{errors.email}</span>
                           </p>
                         )}
@@ -348,10 +387,11 @@ export default function Contact() {
                         <input
                           type="tel"
                           name="phone"
+                          disabled={status === 'loading'}
                           value={formData.phone}
                           onChange={handleChange}
                           placeholder="+971 50 123 4567"
-                          className={`w-full px-4 py-3.5 rounded-xl bg-neutral-950/80 border text-sm text-white placeholder-neutral-500 focus:outline-none transition-all duration-200 ${
+                          className={`w-full px-4 py-3.5 rounded-xl bg-neutral-950/80 border text-sm text-white placeholder-neutral-500 focus:outline-none transition-all duration-200 disabled:opacity-50 ${
                             errors.phone
                               ? 'border-red-500/80 focus:border-red-500'
                               : 'border-neutral-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30'
@@ -359,7 +399,7 @@ export default function Contact() {
                         />
                         {errors.phone && (
                           <p className="text-xs text-red-400 flex items-center gap-1.5 pt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                             <span>{errors.phone}</span>
                           </p>
                         )}
@@ -372,9 +412,10 @@ export default function Contact() {
                         </label>
                         <select
                           name="service"
+                          disabled={status === 'loading'}
                           value={formData.service}
                           onChange={handleChange}
-                          className={`w-full px-4 py-3.5 rounded-xl bg-neutral-950/80 border text-sm text-white focus:outline-none transition-all duration-200 ${
+                          className={`w-full px-4 py-3.5 rounded-xl bg-neutral-950/80 border text-sm text-white focus:outline-none transition-all duration-200 disabled:opacity-50 ${
                             errors.service
                               ? 'border-red-500/80 focus:border-red-500'
                               : 'border-neutral-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30'
@@ -389,7 +430,7 @@ export default function Contact() {
                         </select>
                         {errors.service && (
                           <p className="text-xs text-red-400 flex items-center gap-1.5 pt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                             <span>{errors.service}</span>
                           </p>
                         )}
@@ -405,10 +446,11 @@ export default function Contact() {
                       <textarea
                         name="message"
                         rows={4}
+                        disabled={status === 'loading'}
                         value={formData.message}
                         onChange={handleChange}
                         placeholder="Tell us about your brand goals, project scope, desired deliverables and timeline..."
-                        className={`w-full px-4 py-3.5 rounded-xl bg-neutral-950/80 border text-sm text-white placeholder-neutral-500 focus:outline-none transition-all duration-200 resize-none ${
+                        className={`w-full px-4 py-3.5 rounded-xl bg-neutral-950/80 border text-sm text-white placeholder-neutral-500 focus:outline-none transition-all duration-200 resize-none disabled:opacity-50 ${
                           errors.message
                             ? 'border-red-500/80 focus:border-red-500'
                             : 'border-neutral-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30'
@@ -416,7 +458,7 @@ export default function Contact() {
                       />
                       {errors.message && (
                         <p className="text-xs text-red-400 flex items-center gap-1.5 pt-1">
-                          <AlertCircle className="w-3.5 h-3.5" />
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                           <span>{errors.message}</span>
                         </p>
                       )}
@@ -425,15 +467,25 @@ export default function Contact() {
                     {/* Submit Button */}
                     <button
                       type="submit"
-                      className="w-full relative group py-4 px-8 rounded-xl font-bold text-xs sm:text-sm tracking-[0.25em] uppercase overflow-hidden bg-gradient-to-r from-[#F5D77A] via-[#D4AF37] to-[#C9A227] text-[#050505] shadow-[0_0_30px_rgba(212,175,55,0.3)] hover:shadow-[0_0_45px_rgba(212,175,55,0.6)] transition-all duration-300 flex items-center justify-center gap-3 hover:scale-[1.01] active:scale-[0.99]"
+                      disabled={status === 'loading'}
+                      className="w-full relative group py-4 px-8 rounded-xl font-bold text-xs sm:text-sm tracking-[0.25em] uppercase overflow-hidden bg-gradient-to-r from-[#F5D77A] via-[#D4AF37] to-[#C9A227] text-[#050505] shadow-[0_0_30px_rgba(212,175,55,0.3)] hover:shadow-[0_0_45px_rgba(212,175,55,0.6)] transition-all duration-300 flex items-center justify-center gap-3 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed"
                     >
                       <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <Send className="w-4 h-4 text-[#050505]" />
-                      <span className="relative z-10 font-black">SEND MESSAGE</span>
+                      {status === 'loading' ? (
+                        <>
+                          <Loader2 className="w-4 h-4 text-[#050505] animate-spin" />
+                          <span className="relative z-10 font-black">SENDING...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 text-[#050505]" />
+                          <span className="relative z-10 font-black">SEND MESSAGE</span>
+                        </>
+                      )}
                     </button>
 
                     <p className="text-[11px] text-center text-neutral-400 font-mono">
-                      Submitting prepares a direct WhatsApp project inquiry with our team.
+                      Inquiries are delivered directly to <span className="text-[#D4AF37]">{siteConfig.email}</span>
                     </p>
 
                   </form>

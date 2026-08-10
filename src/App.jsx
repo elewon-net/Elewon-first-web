@@ -6,7 +6,6 @@ import Preloader from './components/Preloader';
 import Navbar from './components/Navbar';
 import CustomCursor from './components/CustomCursor';
 import ScrollProgress from './components/ScrollProgress';
-import FloatingWhatsApp from './components/FloatingWhatsApp';
 
 // Sections
 import Hero from './sections/Hero';
@@ -51,9 +50,6 @@ export default function App() {
 
           {/* Desktop Luxury Magnetic Halo Cursor */}
           <CustomCursor />
-
-          {/* Persistent Floating WhatsApp Widget */}
-          <FloatingWhatsApp />
 
           {/* Fixed Sticky Header Navigation */}
           <Navbar />

@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ArrowUpRight, ChevronDown, Sparkles } from 'lucide-react';
-import logoImg from '../assets/logo.png';
 import { siteConfig } from '../config/siteConfig';
 import GoldParticleCanvas from '../components/GoldParticleCanvas';
 import MagneticButton from '../components/MagneticButton';
+import HeroElevatedEmblem from '../components/HeroElevatedEmblem';
 
 export default function Hero() {
   // Desktop mouse parallax coordinates
@@ -15,11 +15,7 @@ export default function Hero() {
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
-  // Controlled 3D rotation and subtle parallax shifts (5-10px)
-  const rotateX = useTransform(smoothY, [-0.5, 0.5], [6, -6]);
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-6, 6]);
-  const modelX = useTransform(smoothX, [-0.5, 0.5], [-8, 8]);
-  const modelY = useTransform(smoothY, [-0.5, 0.5], [-8, 8]);
+  // Controlled ambient glow shifts
   const glowShiftX = useTransform(smoothX, [-0.5, 0.5], [-15, 15]);
   const glowShiftY = useTransform(smoothY, [-0.5, 0.5], [-15, 15]);
 
@@ -177,84 +173,11 @@ export default function Hero() {
               </button>
             </MagneticButton>
           </motion.div>
-
-          {/* Micro Brand Highlights */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.75 }}
-            className="flex items-center gap-6 pt-4 text-xs font-mono text-neutral-400"
-          >
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-              <span>BRAND STRATEGY</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-              <span>MEDIA PRODUCTION</span>
-            </div>
-            <div className="flex items-center gap-2 hidden sm:flex">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-              <span>SIGNATURE EVENTS</span>
-            </div>
-          </motion.div>
         </div>
 
-        {/* Right Column: 3D Floating ELEWON Emblem Visual */}
-        <div className="lg:col-span-5 flex items-center justify-center relative">
-          <motion.div
-            style={{
-              rotateX,
-              rotateY,
-              x: modelX,
-              y: modelY,
-              transformStyle: 'preserve-3d',
-            }}
-            initial={{ opacity: 0, scale: 0.88, filter: 'blur(8px)' }}
-            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-[340px] sm:max-w-[420px] aspect-square flex items-center justify-center"
-          >
-            {/* Ambient Back Glow rings */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#D4AF37]/25 to-transparent blur-3xl pointer-events-none" />
-            <div className="absolute -inset-4 rounded-full border border-[#D4AF37]/20 animate-spin-slow pointer-events-none" />
-            <div className="absolute -inset-10 rounded-full border border-neutral-800/60 pointer-events-none" />
-
-            {/* Glowing Logo Card Frame with Smooth Harmonic Float */}
-            <motion.div
-              animate={{
-                y: [0, -12, 0],
-                rotateZ: [0, 0.8, -0.8, 0],
-              }}
-              transition={{
-                duration: 7,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-              className="relative w-full h-full rounded-3xl p-6 sm:p-8 bg-gradient-to-b from-[#141414]/90 via-[#0B0B0B]/90 to-[#050505]/95 border border-[#D4AF37]/35 shadow-[0_20px_60px_rgba(0,0,0,0.9),0_0_40px_rgba(212,175,55,0.18)] backdrop-blur-xl flex flex-col items-center justify-center overflow-hidden group"
-            >
-              
-              {/* Occasional Metallic Light Sweep */}
-              <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
-                <div className="absolute -inset-full bg-gradient-to-r from-transparent via-[#F5D77A]/20 to-transparent skew-x-12 animate-periodic-sweep" />
-              </div>
-
-              {/* Official Logo Display */}
-              <div className="relative w-full h-full flex items-center justify-center p-2">
-                <img
-                  src={logoImg}
-                  alt="ELEWON Official Emblem"
-                  className="w-full h-full object-contain filter drop-shadow-[0_10px_30px_rgba(212,175,55,0.45)] transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-
-              {/* Bottom Subtle Indicator */}
-              <div className="absolute bottom-4 flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 border border-[#D4AF37]/20 text-[10px] tracking-[0.2em] uppercase text-[#F5D77A]/80 font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#25D366] animate-pulse" />
-                <span>ELEVATING TO SUCCESS</span>
-              </div>
-            </motion.div>
-          </motion.div>
+        {/* Right Column: 3D Fixed ELEWON Emblem with Energy Base & Orbit Rings */}
+        <div className="lg:col-span-5 flex items-center justify-center relative w-full">
+          <HeroElevatedEmblem smoothX={smoothX} smoothY={smoothY} />
         </div>
       </div>
 

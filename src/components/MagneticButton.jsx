@@ -37,15 +37,12 @@ export default function MagneticButton({
       onMouseLeave={handleMouseLeave}
       animate={{ x: position.x, y: position.y }}
       transition={{ type: 'spring', stiffness: 200, damping: 15, mass: 0.1 }}
-      className="inline-block"
+      className={`inline-block ${className}`}
+      onClick={onClick}
+      {...props}
     >
-      <button
-        onClick={onClick}
-        className={className}
-        {...props}
-      >
-        {children}
-      </button>
+      {children}
     </motion.div>
   );
 }
+

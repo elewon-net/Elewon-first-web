@@ -14,8 +14,29 @@ ELEWON is a high-end luxury creative agency website engineered with modern web t
 - **Cinematic Motion & Particle System**: Lightweight GPU-accelerated gold particle atmosphere floating across the dark environment.
 - **3D Hero Emblem**: Harmonic floating animation with mouse parallax and periodic metallic reflections.
 - **Selected Work Portfolio**: Categorized showcases with AI-rendered project visuals and interactive lightbox.
-- **WhatsApp Concierge Integration**: Direct routing to the configured destination number (`917736242329`) with dynamic inquiry message formatting.
+- **Email Contact Form**: Direct client inquiry delivery to `helloelewon@outlook.com` via Web3Forms / Formspree with zero third-party redirects and inline validation.
+- **WhatsApp Concierge Widget**: Persistent floating WhatsApp contact button (`+91 77362 42329`) for quick chat.
 - **Performance & SEO**: Fully responsive, semantic HTML, Open Graph tags, fast build times, and Vercel-ready.
+
+---
+
+## 📧 Email Service Setup (Vercel & Local)
+
+The contact form is configured to send all submissions to **`helloelewon@outlook.com`**.
+
+### Option A: Web3Forms (Recommended - Free & Instant)
+1. Go to [https://web3forms.com](https://web3forms.com) and enter `helloelewon@outlook.com` to receive a free Access Key.
+2. Add the key to your `.env` (or Vercel Environment Variables):
+```env
+VITE_WEB3FORMS_ACCESS_KEY=your_web3forms_access_key
+```
+
+### Option B: Formspree
+1. Create a form at [https://formspree.io](https://formspree.io) pointing to `helloelewon@outlook.com`.
+2. Add the Form ID to your environment variables:
+```env
+VITE_FORMSPREE_ID=your_form_id
+```
 
 ---
 

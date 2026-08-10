@@ -8,16 +8,17 @@ export const siteConfig = {
   tagline: "ELEVATING TO SUCCESS",
   categories: ["BRANDING", "MEDIA", "EVENTS"],
   categoryString: "BRANDING • MEDIA • EVENTS",
-  heroSubtitle: "BRANDING • MEDIA • DIGITAL CONTENT • EVENTS",
+  heroSubtitle: "BRANDING • MEDIA • EVENTS",
   websiteUrl: "https://elewon.net",
   displayUrl: "elewon.net",
+  // Email Configuration (Destination)
   email: "helloelewon@outlook.com",
   instagram: {
     handle: "@elewon_uae",
     url: "https://www.instagram.com/elewon_uae",
   },
   
-  // WhatsApp Configuration (Single Source of Truth)
+  // WhatsApp Configuration (Used for Direct Floating Concierge Only)
   // Format: International format without '+' sign, spaces, or hyphens
   whatsapp: {
     number: "917736242329",
@@ -47,27 +48,33 @@ export const siteConfig = {
 };
 
 /**
- * Helper to generate the WhatsApp conversation URL from contact form data
+ * Formats the complete inquiry email body according to ELEWON specifications
  */
-export function generateWhatsAppContactUrl({ name, email, phone, service, projectDetails }) {
-  const message = `Hello ELEWON,
+export function formatEnquiryEmail({ name, email, phone, service, message }) {
+  return `Hello ELEWON,
 
-I would like to discuss a project with you.
+You have received a new project enquiry.
 
-Name: ${name}
+Name:
+${name}
 
-Email: ${email}
+Email:
+${email}
 
-Phone: ${phone}
+Phone:
+${phone}
 
-Service: ${service}
+Service:
+${service}
 
 Project Details:
-${projectDetails}
+${message}
 
-Thank you.`;
+--------------------------------
 
-  return `https://wa.me/${siteConfig.whatsapp.number}?text=${encodeURIComponent(message)}`;
+Sent from:
+ELEWON Website
+elewon.net`;
 }
 
 /**
