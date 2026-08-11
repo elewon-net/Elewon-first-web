@@ -43,7 +43,7 @@ export default function About() {
         {/* Section Heading */}
         <SectionHeading
           badge="ABOUT ELEWON"
-          title="WE DON'T JUST BUILD BRANDS. WE BUILD IMPACT."
+          title="Our vision that transforms your journey into success."
           subtitle="At ELEWON, we believe every brand carries a unique story — and our mission is to bring that story to life with clarity, creativity, and purpose."
           className="mb-16 sm:mb-20"
         />
