@@ -14,8 +14,8 @@ export const siteConfig = {
   // Email Configuration (Destination)
   email: "helloelewon@outlook.com",
   instagram: {
-    handle: "@elewon_uae",
-    url: "https://www.instagram.com/elewon_uae",
+    handle: "@elewon_official",
+    url: "https://www.instagram.com/elewon_official?utm_source=ig_web_button_share_sheet&igsi=ZDNlZDc0MzIxNw==",
   },
   
   // WhatsApp Configuration (Used for Direct Floating Concierge Only)
